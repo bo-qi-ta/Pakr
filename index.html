@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>线性代数计算器（五章）</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <script src="math.js"></script>
     <style>
         :root {
             --primary: #4a90e2;
@@ -148,8 +148,19 @@
             max-height: 400px; overflow-y: auto;
         }
         
-        .matrix-row { display: flex; gap: 8px; margin-bottom: 8px; }
-        .matrix-row input { flex: 1; text-align: center; }
+        .matrix-row { display: flex; gap: 4px; margin-bottom: 8px; }
+	.matrix-row input { 
+    		flex: 1 1 0; 
+    		min-width: 0; /* 关键：允许输入框在窄屏下收缩 */
+    		padding: 6px 2px; /* 减小内边距，让数字有更多显示空间 */
+   		font-size: 13px; /* 稍微缩小字体 */
+   		text-align: center; 
+	 }
+		#detMatrixContainer, #matAContainer, #matBContainer, 
+		#vecMatrixContainer, #eqMatrixContainer, #eigMatrixContainer {
+    		overflow-x: auto; /* 屏幕太窄时，允许左右滑动查看矩阵 */
+    		padding-bottom: 5px;
+	}
         .error { color: #e53e3e; }
         .success { color: #38a169; }
         
