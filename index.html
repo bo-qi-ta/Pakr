@@ -1,1332 +1,742 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Pakr By ZSFan</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding-top:60px}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线性代数计算器（五章）</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --primary-dark: #357abd;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --border: #e0e6ed;
+        }
 
-/* ── Nav ── */
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:100000;
-  height:60px;padding:0 24px;
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--nav-bg);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);
-}
-.nav-logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--text);text-decoration:none}
-.nav-logo-icon{
-  width:30px;height:30px;border-radius:8px;
-  background:var(--text);display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
-}
-.nav-logo-icon svg{width:16px;height:16px;fill:none;stroke:var(--bg);stroke-width:2;stroke-linecap:round}
-.nav-actions{display:flex;align-items:center;gap:8px}
-.nav-tool{
-  display:flex;align-items:center;justify-content:center;
-  width:38px;height:38px;padding:0;
-  color:var(--muted);background:var(--surface);border:1px solid var(--border2);
-  border-radius:12px;text-decoration:none;cursor:pointer;
-  transition:background .15s,color .15s,border-color .15s,transform .12s;
-  -webkit-tap-highlight-color:transparent;
-}
-.nav-tool:hover{background:var(--surface2);color:var(--accent);border-color:var(--accent)}
-.nav-tool:active{transform:scale(0.97)}
-.nav-tool svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.nav-tool.github svg{fill:currentColor;stroke:none}
+        /* 右下角彩蛋按钮 */
+        .easter-egg-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+            opacity: 0.25;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 9999;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .easter-egg-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.2));
+        }
+        .easter-egg-btn:hover {
+            opacity: 1;
+            transform: scale(1.2) rotate(10deg);
+        }
 
-/* ── Hero ── */
-.hero{
-  max-width:680px;margin:0 auto;
-  padding:80px 24px 56px;
-  text-align:center;
-}
-.hero-tag{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:12px;font-weight:500;color:var(--muted);
-  background:#f7f7f7;border:1px solid var(--border);
-  padding:4px 12px;border-radius:100px;
-  margin-bottom:24px;
-}
-.hero-tag-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0}
-.hero h1{
-  font-size:clamp(2.2rem,5vw,3.2rem);
-  font-weight:700;letter-spacing:-0.04em;line-height:1.1;
-  color:var(--text);margin-bottom:18px;
-}
-.hero h1 span{color:var(--muted)}
-.hero p{font-size:16px;color:var(--muted);max-width:420px;margin:0 auto 40px;line-height:1.7}
-.hero-stats{
-  display:flex;justify-content:center;gap:32px;flex-wrap:wrap;
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: var(--bg-image, url('boqita.jpg')); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            transition: background-image 0.5s ease;
+        }
 
-/* ── Main Content ── */
-.content{max-width:520px;margin:0 auto;padding:0 24px 80px}
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: background 0.5s ease, color 0.5s ease;
+        }
 
-/* ── Form Card ── */
-.card{
-  background:var(--bg);border:1px solid var(--border);
-  border-radius:16px;padding:28px;
-  box-shadow:0 4px 24px rgba(0,0,0,0.06);
-}
-.card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:20px;display:flex;align-items:center;gap:8px}
-.card-title-badge{
-  font-size:11px;font-weight:500;color:#888;
-  background:var(--surface2);padding:2px 8px;border-radius:4px;
-}
+        /* 底部 Logo */
+        .footer-logo {
+            margin-top: 30px;
+            text-align: center;
+            width: 100%;
+            padding-bottom: 20px;
+        }
+        .footer-logo img {
+            max-width: 260px;
+            height: auto;
+            opacity: 0.85;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+        }
 
-.form{display:flex;flex-direction:column;gap:16px}
-.field{display:flex;flex-direction:column;gap:6px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:400px){.row{grid-template-columns:1fr}}
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 24px; }
+        
+        .tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 15px 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: white;
+        }
 
-label{font-size:12px;font-weight:500;color:#444}
-.hint{font-size:11px;color:#999;margin-top:2px}
-input{
-  height:42px;
-  border:1px solid #e0e0e0;border-radius:8px;
-  padding:0 12px;font-size:14px;font-family:inherit;
-  color:var(--text);background:#fafafa;outline:none;
-  transition:border-color .15s,box-shadow .15s,background .15s;
-}
-input::placeholder{color:#bbb}
-input:focus{border-color:var(--text);background:var(--bg);box-shadow:0 0 0 3px rgba(0,0,0,0.06)}
-input:not(:placeholder-shown){background:#fafafa}
-input:-webkit-autofill,input:-webkit-autofill:focus{
-  -webkit-box-shadow:0 0 0 100px #fafafa inset!important;
-  -webkit-text-fill-color:var(--text)!important}
-input.err{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,0.08)}
-
-.btn{
-  width:100%;height:46px;margin-top:4px;
-  background:var(--accent);color:var(--accent-text);border:none;border-radius:8px;
-  font-size:14px;font-weight:600;font-family:inherit;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
-  transition:background .15s,transform .12s,box-shadow .15s;
-  position:relative;overflow:hidden;
-}
-.btn:hover:not(:disabled){background:var(--accent-hover);box-shadow:0 4px 16px rgba(37,99,235,0.25)}
-.btn:active:not(:disabled){transform:scale(0.98)}
-.btn:disabled{opacity:0.5;cursor:not-allowed}
-.btn-icon{width:16px;height:16px;fill:none;stroke:var(--bg);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-
-/* ── Info Card ── */
-.info-card{display:flex;flex-direction:column;gap:16px}
-.feature{display:flex;gap:12px;align-items:flex-start}
-.feature-icon{
-  width:36px;height:36px;border-radius:8px;background:var(--surface2);
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
-.feature-icon svg{width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.feature-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
-.feature-desc{font-size:12px;color:#888;line-height:1.5}
-
-.steps-card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:20px}
-.steps-title{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px}
-.step-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2)}
-.step-item:last-child{border-bottom:none}
-.step-num{
-  width:22px;height:22px;border-radius:50%;
-  background:var(--text);color:var(--bg);font-size:11px;font-weight:600;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-}
-.step-text{font-size:13px;color:var(--muted)}
-
-/* ── Status Box ── */
-.status-box{
-  display:none;
-  background:var(--bg);border:1px solid var(--border);
-  border-radius:16px;padding:24px;
-  box-shadow:0 4px 24px rgba(0,0,0,0.06);
-}
-.status-box.show{display:block}
-.status-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
-.status-dot{
-  width:10px;height:10px;border-radius:50%;background:#ddd;flex-shrink:0;
-  transition:background .3s;
-}
-.status-dot.running{background:#f59e0b;animation:pulse 1.2s ease-in-out infinite}
-.status-dot.success{background:#22c55e}
-.status-dot.fail{background:#ef4444}
-@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.18);opacity:.55}}
-50%{opacity:.7;transform:scale(1.3)}}
-.status-title{font-size:14px;font-weight:600;color:var(--text)}
-.status-sub{font-size:12px;color:#888;margin-top:1px}
-
-.progress-wrap{background:#e0e0e0;border-radius:100px;height:5px;margin-bottom:20px;overflow:hidden}
-.progress-bar{height:100%;background:linear-gradient(90deg,var(--text) 0%,#444 100%);border-radius:100px;transition:width .6s cubic-bezier(0.25,1,0.5,1);width:0%;box-shadow:0 0 6px rgba(0,0,0,0.25)}
-
-.check-list{display:flex;flex-direction:column;gap:8px}
-.check-item{display:flex;align-items:center;gap:8px;font-size:13px;color:#999}
-.check-item.done{color:var(--text)}
-.check-item.active{color:#f59e0b}
-.check-item.fail{color:#ef4444}
-.check-ico{
-  width:18px;height:18px;border-radius:50%;border:1.5px solid #ddd;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  transition:all .2s;
-}
-.check-item.done .check-ico{border-color:#22c55e;background:#22c55e}
-.check-item.active .check-ico{border-color:#f59e0b;background:var(--bg)}
-.check-item.fail .check-ico{border-color:#ef4444;background:#ef4444}
-.check-ico svg{width:10px;height:10px;stroke:var(--bg);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-.check-item.active .check-ico svg{stroke:#f59e0b}
-
-.err-msg{
-  margin-top:14px;padding:12px;
-  background:#fff5f5;border:1px solid #fecaca;border-radius:8px;
-  font-size:12px;color:#dc2626;display:none;
-}
-.err-msg.show{display:block}
-
-.download-btn{
-  display:none;height:46px;margin-top:16px;
-  background:#22c55e;color:var(--bg);border:none;border-radius:8px;
-  font-size:14px;font-weight:600;font-family:inherit;
-  cursor:pointer;align-items:center;justify-content:center;gap:8px;
-  transition:background .15s,transform .12s;
-}
-.download-btn.show{display:flex}
-.download-btn:hover{background:#16a34a}
-.download-btn:active{transform:scale(0.98)}
-.copy-link-btn{
-  display:none;height:46px;margin-top:16px;padding:0 14px;
-  background:#f0fdf4;color:#16a34a;border:1.5px solid #86efac;border-radius:8px;
-  font-size:13px;font-weight:600;font-family:inherit;white-space:nowrap;
-  cursor:pointer;align-items:center;justify-content:center;gap:6px;
-  transition:background .15s,border-color .15s,transform .12s;flex-shrink:0;
-}
-.copy-link-btn.show{display:flex}
-.copy-link-btn:hover{background:#dcfce7;border-color:#4ade80}
-.copy-link-btn:active{transform:scale(0.97)}
-.copy-link-btn.copied{background:#dcfce7;color:#15803d;border-color:#4ade80}
-
-/* ── 下载卡片（折叠） ── */
-.apk-card{margin-top:10px;border-radius:14px;overflow:hidden;border:1.5px solid var(--border);background:var(--bg)}
-.apk-card+.apk-card{margin-top:8px}
-.apk-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;background:var(--bg);border:none;font-size:14px;font-weight:600;font-family:inherit;color:var(--text);cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent}
-.apk-trigger:hover{background:var(--surface)}
-.apk-trigger:active{background:#f3f3f3}
-.apk-trigger-left{display:flex;align-items:center;gap:10px}
-.apk-trigger-badge{font-size:11px;font-weight:600;color:var(--bg);background:var(--text);padding:3px 9px;border-radius:100px;letter-spacing:.02em}
-.apk-trigger-arrow{width:18px;height:18px;fill:none;stroke:var(--faint);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;transition:transform .25s cubic-bezier(.4,0,.2,1)}
-.apk-card.open .apk-trigger-arrow{transform:rotate(180deg)}
-.apk-card.open .apk-trigger{background:#fafafa}
-/* 子操作区 —— 关键：默认 display:none，open 时显示 */
-.apk-actions{display:none;padding:10px 12px 12px;gap:8px;border-top:1px solid var(--border);background:#fafafa;flex-wrap:wrap}
-.apk-card.open .apk-actions{display:flex}
-/* 下载按钮 */
-.dl-btn{flex:1;min-width:0;height:42px;background:var(--text);color:var(--bg);border:none;border-radius:10px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,transform .1s;-webkit-tap-highlight-color:transparent}
-.dl-btn:hover{background:#2a2a2a}
-.dl-btn:active{transform:scale(0.97)}
-/* 二维码按钮 */
-.qr-btn{height:42px;padding:0 14px;background:var(--bg);color:var(--muted);border:1.5px solid #e5e5e5;border-radius:10px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,border-color .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
-.qr-btn:hover{background:var(--surface2);border-color:#ccc;color:var(--text)}
-/* 复制按钮 */
-.cp-btn{height:42px;padding:0 14px;background:var(--bg);color:var(--muted);border:1.5px solid #e5e5e5;border-radius:10px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,border-color .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
-.cp-btn:hover{background:var(--surface2);border-color:#ccc;color:var(--text)}
-.cp-btn.copied{background:#f0fdf4;color:#16a34a;border-color:#86efac}
-/* 二维码弹窗 */
-.qr-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:0}
-.qr-modal.show{display:flex}
-.qr-box{background:var(--bg);border-radius:24px 24px 0 0;padding:28px 24px 36px;width:100%;max-width:480px;text-align:center;box-shadow:0 -8px 40px rgba(0,0,0,0.12)}
-.qr-box-handle{width:36px;height:4px;background:#e0e0e0;border-radius:100px;margin:0 auto 20px}
-.qr-box-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
-.qr-box-sub{font-size:13px;color:#999;margin-bottom:20px}
-.qr-box canvas{border-radius:12px;display:block;margin:0 auto;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
-.qr-box-close{margin-top:20px;width:100%;height:46px;background:var(--surface2);color:#444;border:none;border-radius:12px;font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:background .15s}
-.qr-box-close:hover{background:#ebebeb}
-
-/* ── Footer ── */
-footer{
-  border-top:1px solid var(--border);
-  padding:24px;text-align:center;
-  font-size:12px;color:var(--faint);
-}
-footer span{margin:0 8px;opacity:.4}
-
-/* ── Icon Preview ── */
-.icon-field{display:flex;gap:10px;align-items:flex-end}
-.icon-field .field{flex:1}
-.icon-preview{
-  width:42px;height:42px;border-radius:10px;flex-shrink:0;margin-top:0;
-  background:var(--surface2);border:1px solid var(--border);
-  overflow:hidden;display:flex;align-items:center;justify-content:center;
-}
-.icon-preview img{width:100%;height:100%;object-fit:cover;display:none}
-.icon-preview-placeholder{width:20px;height:20px;opacity:.25}
-
-/* ── History 浮动面板 ── */
-  position:fixed;top:0;right:0;bottom:0;width:320px;max-width:92vw;
-  background:var(--bg);z-index:1000;box-shadow:-4px 0 32px rgba(0,0,0,0.12);
-  display:flex;flex-direction:column;
-  border-radius:20px 0 0 20px;
-  transform:translateX(100%);transition:transform .28s cubic-bezier(0.32,0,0.15,1);
-  overflow:hidden;
-}
-/* ── History Card ── */
-
-.history-clear:hover{color:#ef4444}
-
-.history-item:hover{background:var(--border)}
-.history-icon img{width:100%;height:100%;object-fit:cover}
-
-/* ── CSS 时钟图标 ── */
-.css-clock{display:inline-block;width:11px;height:11px;border:1.5px solid currentColor;border-radius:50%;position:relative;vertical-align:middle;margin-right:2px;flex-shrink:0}
-.css-clock::before{content:'';position:absolute;width:1.5px;height:3.5px;background:currentColor;left:50%;top:50%;transform:translate(-50%,-100%) rotate(0deg);transform-origin:50% 100%;border-radius:1px}
-.css-clock::after{content:'';position:absolute;width:1.5px;height:2.5px;background:currentColor;left:50%;top:50%;transform:translate(-50%,-100%) rotate(90deg);transform-origin:50% 100%;border-radius:1px}
-
-.history-cp-btn:hover{background:#e0e0e0;color:var(--text)}
-.history-dl-btn:hover{background:var(--text);color:var(--bg);border-color:var(--text)}
-
-.err-detail{margin-top:10px;background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;text-align:left}
-.err-detail-title{font-size:12px;font-weight:600;color:#dc2626;margin-bottom:4px}
-.err-detail-log{font-size:11px;color:#7f1d1d;font-family:monospace;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow-y:auto;line-height:1.5}
-
-.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
-.perm-item{
-  display:flex;align-items:center;gap:8px;
-  padding:9px 12px;border-radius:8px;
-  border:1px solid var(--border2);background:var(--surface);
-  cursor:pointer;font-size:13px;color:#333;
-  transition:background .15s,border-color .15s;
-  user-select:none;
-}
-.perm-item:has(input:checked){background:var(--border);border-color:#d0d0d0}
-.perm-item input{width:15px;height:15px;accent-color:var(--text);flex-shrink:0}
-.perm-icon{font-size:15px}
-
-/* ── Toggle Switch ── */
-.toggle-row{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 0;border-top:1px solid var(--border);margin-top:4px}
-.toggle-label{font-size:13px;font-weight:500;color:#333}
-.toggle-desc{font-size:11px;color:var(--faint);margin-top:1px}
-.toggle-switch{position:relative;width:40px;height:22px;flex-shrink:0}
-.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
-.toggle-track{position:absolute;inset:0;border-radius:11px;background:#e0e0e0;cursor:pointer;transition:background .2s}
-.toggle-switch input:checked+.toggle-track{background:var(--text)}
-.toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--bg);box-shadow:0 1px 3px rgba(0,0,0,0.2);pointer-events:none;transition:left .2s}
-.toggle-switch input:checked~.toggle-thumb{left:21px}
-
-/* ── Dark Mode ── */
-@media(prefers-color-scheme:dark){
-.progress-wrap{background:#333}.progress-bar{background:linear-gradient(90deg,var(--bg) 0%,var(--faint) 100%);box-shadow:0 0 6px rgba(255,255,255,0.2)}
-  body{background:var(--text);color:var(--border)}
-  nav{background:rgba(17,17,17,0.85);border-bottom-color:#2a2a2a}
-  .nav-logo{color:var(--border)}
-  .nav-badge{background:#1e1e1e;border-color:#2a2a2a;color:#888}
-  .github-link{color:var(--faint);background:#1e1e1e;border-color:#2a2a2a}
-  .github-link:hover{background:var(--border);color:var(--text);border-color:var(--border)}
-  .hero h1{color:var(--border)}
-  .hero h1 span{color:#888}
-  .hero p{color:#888}
-  .hero-tag{background:#1e1e1e;border-color:#2a2a2a;color:var(--faint)}
-  .card{background:#1a1a1a;border-color:#2a2a2a;box-shadow:0 4px 24px rgba(0,0,0,0.3)}
-  label{color:var(--faint)}
-  .input-wrap input,.input-wrap select{background:var(--text);border-color:#2a2a2a;color:var(--border)}
-  .input-wrap input::placeholder{color:var(--muted)}
-  .input-wrap input:focus,.input-wrap select:focus{border-color:var(--muted);box-shadow:0 0 0 3px rgba(255,255,255,0.06)}
-  .btn-primary{background:var(--border);color:var(--text)}
-  .btn-primary:hover{background:var(--bg)}
-  .step-item{background:#1a1a1a}
-  .step-label{color:var(--faint)}
-  .status-box{background:#1a1a1a;border-color:#2a2a2a}
-  .status-title{color:var(--border)}
-  
-  pre{background:var(--text);color:#ccc}
-  
-  
-  .history-item:hover{background:#2a2a2a}
-  .dl-btn{background:#1a1a1a;border-color:#2a2a2a;color:var(--border)}
-  .dl-btn:hover{background:#2a2a2a}
-  
-.history-cp-btn:hover{background:#e0e0e0;color:var(--text)}
-  .history-dl-btn:hover{background:#333;color:var(--bg)}
-  .toggle-row{border-top-color:#2a2a2a}
-  .toggle-label{color:#ccc}
-  .toggle-track{background:#333}
-  .toggle-switch input:checked+.toggle-track{background:var(--border)}
-  .toggle-thumb{background:var(--bg)}
-  .toggle-switch input:checked~.toggle-thumb{background:var(--text)}
-  .perm-item{background:#222;border-color:#2a2a2a;color:#ccc}
-  .perm-item:has(input:checked){background:#2a2a2a;border-color:#444}
-
-}
-
-/* ── Dark Mode ── */
-:root{
-  --bg:#ffffff;--surface:#f9f9f9;--surface2:#f5f5f5;
-  --border:#e8e8e8;--border2:#efefef;
-  --text:#111111;--muted:#666666;--faint:#aaaaaa;
-  --input-bg:#fafafa;--input-border:#e0e0e0;
-  --card-shadow:0 4px 24px rgba(0,0,0,0.06);
-  --nav-bg:rgba(255,255,255,0.85);
-  --history-bg:#ffffff;--history-border:#e8e8e8;
-  --accent:#2563eb;--accent-hover:#1d4ed8;--accent-active:#1e40af;--accent-text:#ffffff;--accent-soft:#eff4ff;
-  --danger:#dc2626;--danger-hover:#b91c1c;
-}
-[data-theme="dark"]{
-  --bg:#0d1117;--surface:#161b22;--surface2:#1c2128;
-  --border:#30363d;--border2:#21262d;
-  --text:#e6edf3;--muted:#8b949e;--faint:#484f58;
-  --input-bg:#1c2128;--input-border:#30363d;
-  --card-shadow:0 4px 24px rgba(0,0,0,0.35);
-  --nav-bg:rgba(13,17,23,0.85);
-  --history-bg:#161b22;--history-border:#21262d;
-  --accent:#3b82f6;--accent-hover:#60a5fa;--accent-active:#2563eb;--accent-text:#0d1117;--accent-soft:#152238;
-  --danger:#f87171;--danger-hover:#fca5a5;
-}
-html{ color-scheme: light dark; }
-.steps-card,.status-box,.dl-card,.perm-item{
-  transition:background-color .2s,border-color .2s,color .2s;
-}
-
-/* 应用变量 */
-body{background:var(--bg);color:var(--text)}
-nav{background:var(--nav-bg);border-bottom-color:var(--border)}
-.nav-logo{color:var(--text)}
-.nav-tool{background:var(--surface);border-color:var(--border2);color:var(--muted)}
-.nav-tool:hover{background:var(--surface2);color:var(--text);border-color:var(--border)}
-.card{background:var(--bg);border-color:var(--border);box-shadow:var(--card-shadow)}
-label{color:var(--muted)}
-input{background:var(--input-bg);border-color:var(--input-border);color:var(--text)}
-input:focus{border-color:var(--text);background:var(--bg)}
-input::placeholder{color:var(--faint)}
-.steps-card{background:var(--surface);border-color:var(--border2)}
-.steps-title{color:var(--muted)}
-.step-item{border-bottom-color:var(--border2)}
-.step-text{color:var(--muted)}
-.hint{color:var(--faint)}
-.hero-tag{background:var(--surface);border-color:var(--border)}
-.hero h1{color:var(--text)}
-.hero p{color:var(--muted)}
-.nav-badge{color:var(--muted);background:var(--surface);border-color:var(--border2)}
-
-.history-item:hover{background:var(--surface)}
-
-.status-box{background:var(--surface);border-color:var(--border2)}
-.status-title{color:var(--text)}
-.status-sub{color:var(--muted)}
-.check-item .step-text{color:var(--muted)}
-.dl-card{background:var(--surface);border-color:var(--border2)}
-.dl-trigger{color:var(--text)}
-.dl-badge{background:var(--surface2);color:var(--muted)}
-.log-stream{background:var(--surface);border-color:var(--border2);color:var(--muted)}
-footer{border-top-color:var(--border);color:var(--faint)}
-.perm-item{background:var(--surface);border-color:var(--border2);color:var(--muted)}
-.toggle-track{background:var(--surface2)}
-[data-theme="dark"] input:-webkit-autofill,
-[data-theme="dark"] input:-webkit-autofill:focus{
-  -webkit-box-shadow:0 0 0 100px #1c2128 inset!important;
-  -webkit-text-fill-color:#e6edf3!important;
-}
-[data-theme="dark"] .btn{background:var(--accent);color:var(--accent-text)}
-[data-theme="dark"] .btn:hover:not(:disabled){background:var(--accent-hover)}
-[data-theme="dark"] .nav-logo-icon{background:#e6edf3}
-[data-theme="dark"] .nav-logo-icon svg{stroke:#0d1117}
-[data-theme="dark"] .step-num{background:#e6edf3;color:#0d1117}
-
-#dlActions{display:grid;gap:10px;margin-top:10px}
-.apk-card{border:1px solid #ececec;border-radius:14px;background:#fafafa;overflow:hidden}
-.apk-card.open{background:var(--bg);border-color:#e5e5e5;box-shadow:0 8px 22px rgba(0,0,0,.04)}
-.apk-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 14px;background:transparent;border:none}
-.apk-trigger-left{display:flex;align-items:center;gap:10px;min-width:0;font-size:14px;font-weight:600;color:var(--text)}
-.apk-trigger-badge{display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 8px;border-radius:999px;background:var(--text);color:var(--bg);font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
-.apk-trigger-arrow{width:18px;height:18px;stroke:#999;stroke-width:2;fill:none;flex:0 0 auto;transition:transform .2s ease}
-.apk-card.open .apk-trigger-arrow{transform:rotate(180deg)}
-.apk-actions{display:none;grid-template-columns:1fr;gap:8px;padding:0 12px 12px}
-.apk-card.open .apk-actions{display:grid}
-.apk-actions button{height:40px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
-.apk-actions button svg{flex:0 0 auto}
-.dl-btn{background:var(--text)!important;color:var(--bg)!important;border-color:var(--text)!important}
-.cp-btn.copied{background:#ecfdf3!important;color:#15803d!important;border-color:#bbf7d0!important}
-@media (min-width: 520px){.apk-actions{grid-template-columns:repeat(3,1fr)}}
-
-/* ── 免责声明弹窗 ── */
-#disclaimerOverlay{display:none;position:fixed;inset:0;z-index:99998;pointer-events:none;background:rgba(0,0,0,0.65);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:16px}
-#disclaimerBox{pointer-events:auto;pointer-events:auto;background:var(--bg);border-radius:18px;max-width:480px;width:100%;padding:0;box-shadow:0 24px 64px rgba(0,0,0,0.28);display:flex;flex-direction:column;max-height:90vh;overflow:hidden}
-#disclaimerBox .disc-head{padding:24px 24px 0;flex-shrink:0}
-#disclaimerBox h2{font-size:17px;font-weight:700;color:var(--text);margin:0 0 4px;display:flex;align-items:center;gap:8px}
-/* CSS emoji 替代 ⚠️ */
-#disclaimerBox h2::before{content:'';display:inline-block;width:20px;height:20px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23f59e0b' d='M12 2L1 21h22L12 2zm0 3.5L20.5 19h-17L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z'/%3E%3C/svg%3E") center/contain no-repeat;flex-shrink:0}
-#disclaimerBox .disc-subtitle{font-size:12px;color:#888;margin:4px 0 14px}
-/* 滚动区域 */
-#disclaimerBox .disc-body{font-size:13px;color:#444;line-height:1.8;padding:0 24px;overflow-y:auto;flex:1;min-height:0;max-height:340px;scroll-behavior:smooth}
-#disclaimerBox .disc-body p{margin:0 0 12px}
-#disclaimerBox .disc-body strong{color:var(--text)}
-/* 滚动提示渐变 */
-#disclaimerBox .disc-body-wrap{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
-#disclaimerBox .disc-scroll-hint{position:absolute;bottom:0;left:0;right:0;height:48px;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,1));pointer-events:none;transition:opacity .3s;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px}
-#disclaimerBox .disc-scroll-hint span{font-size:11px;color:var(--faint);animation:bounceDown 1.2s ease-in-out infinite}
-@keyframes bounceDown{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
-/* 底部操作区 */
-#disclaimerBox .disc-foot{padding:14px 24px 20px;flex-shrink:0;border-top:1px solid var(--border)}
-#disclaimerBox .disc-scroll-tip{font-size:11px;color:#d97706;margin:0 0 12px;display:flex;align-items:center;gap:5px;transition:opacity .3s}
-/* CSS 图标替代 👇 */
-#disclaimerBox .disc-scroll-tip::before{content:'';display:inline-block;width:14px;height:14px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d97706' d='M12 16l-6-6h12l-6 6z'/%3E%3C/svg%3E") center/contain no-repeat;flex-shrink:0}
-#disclaimerBox .disc-actions{display:flex;gap:10px}
-#discToast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,0.75);color:var(--bg);font-size:13px;padding:9px 18px;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .25s,transform .25s;z-index:100000;white-space:nowrap}
-#discToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-#disclaimerBox .disc-decline{flex:1;padding:11px;border:1.5px solid #ddd;border-radius:10px;background:var(--bg);color:var(--muted);font-size:14px;cursor:pointer;font-weight:500;transition:background .15s}
-#disclaimerBox .disc-decline:hover{background:var(--surface2)}
-#disclaimerBox .disc-accept{flex:2;padding:11px;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600;transition:background .15s,opacity .15s}
-#disclaimerBox .disc-accept:not(.unlocked){background:var(--border);color:var(--muted);cursor:not-allowed;opacity:.7}
-#disclaimerBox .disc-accept.unlocked{background:var(--accent);color:var(--accent-text)}
-#disclaimerBox .disc-accept.unlocked:hover{background:var(--accent-hover)}
-.disc-ban{display:inline-block;width:13px;height:13px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%23ef4444'/%3E%3Cpath stroke='%23fff' stroke-width='2.5' stroke-linecap='round' d='M8 8l8 8M16 8l-8 8'/%3E%3C/svg%3E") center/contain no-repeat;vertical-align:middle;margin-right:4px;flex-shrink:0}
-
-</style>
+        .panel { display: none; padding: 25px; }
+        .panel.active { display: block; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; }
+        
+        input[type="text"], input[type="number"] {
+            width: 100%; padding: 12px; border: 2px solid var(--border);
+            border-radius: 12px; font-size: 14px; box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.8);
+            transition: border 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn {
+            background: var(--primary); color: white; border: none;
+            padding: 12px 24px; border-radius: 12px; cursor: pointer;
+            font-size: 14px; margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        .btn:hover { 
+            background: var(--primary-dark); 
+            transform: translateY(-2px);
+        }
+        .btn-sm { padding: 5px 10px; font-size: 12px; margin: 0; }
+        
+        .result {
+            margin-top: 20px; padding: 15px; background: #f8fafc;
+            border: 1px solid var(--border); border-radius: 6px;
+            font-family: 'Consolas', monospace; white-space: pre-wrap;
+            max-height: 400px; overflow-y: auto;
+        }
+        
+        .matrix-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .matrix-row input { flex: 1; text-align: center; }
+        .error { color: #e53e3e; }
+        .success { color: #38a169; }
+        
+        .global-setting {
+            padding: 10px 20px; background: #eef4fb; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px; font-size: 14px;
+        }
+        .global-setting input { width: 80px; padding: 5px; text-align: center; }
+    </style>
 </head>
 <body>
 
-<!-- 免责声明弹窗（每次访问都显示，需滚动到底部才能同意） -->
-<div id="disclaimerOverlay">
-  <div id="disclaimerBox">
-    <div class="disc-head">
-      <h2>使用须知 &amp; 免责声明</h2>
-      <p class="disc-subtitle">请在使用前仔细阅读，继续使用即表示您同意以下全部条款</p>
+<div class="container">
+    <div class="header">
+        <h1>📐 线性代数计算器（五章）</h1>
+        <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">课程设计 | 姓名：谭力菲 | 学号：2026404030325</p>
     </div>
-    <div class="disc-body-wrap">
-      <div class="disc-body" id="discBody">
 
-        <p><strong>一、工具性质与适用范围</strong></p>
-        <p>Pakr（以下简称"Pakr"）由个人开发者ZSFan独立开发并以开源方式发布，仅供<strong>技术学习、研究及个人合法用途</strong>使用，用于将合法网站快速封装为 Android 应用程序。Pakr本身不存储、不处理、不传输任何用户数据，不内置任何网页内容，所有页面内容均由使用者自行填入的目标网址决定。</p>
-
-        <p><strong>二、使用者身份确认</strong></p>
-        <p>使用Pakr即表示您确认：您已年满 18 周岁，具备完全民事行为能力；您将封装的网站属于您本人合法拥有或已获授权的网站；您已充分了解本声明全部内容并自愿受其约束。</p>
-
-        <p><strong>三、禁止用途（违者承担全部法律责任）</strong></p>
-        <p>严禁将Pakr用于以下任何用途，违者将承担相应刑事、民事及行政法律责任：</p>
-        <p>
-          <span class="disc-ban"></span> 制作、分发仿冒、钓鱼、诈骗类应用程序<br>
-          <span class="disc-ban"></span> 冒充银行、证券、保险、支付机构或政府部门<br>
-          <span class="disc-ban"></span> 封装赌博、彩票、色情、暴力或其他违法违规网站<br>
-          <span class="disc-ban"></span> 侵犯第三方商标权、著作权、专利权或其他知识产权<br>
-          <span class="disc-ban"></span> 窃取、收集或非法处理他人个人信息、账户密码、财产信息<br>
-          <span class="disc-ban"></span> 传播谣言、虚假信息或扰乱公共秩序的内容<br>
-          <span class="disc-ban"></span> 传播木马、病毒、恶意软件或任何有害程序<br>
-          <span class="disc-ban"></span> 规避金融监管、实施非法集资或洗钱行为<br>
-          <span class="disc-ban"></span> 任何其他违反中华人民共和国法律法规及使用者所在地法律的行为
-        </p>
-
-        <p><strong>四、开发者ZSFan责任豁免声明</strong></p>
-        <p>Pakr以"现状"提供，开发者ZSFan在法律允许的最大范围内明确声明：</p>
-        <p>1. Pakr仅提供技术封装能力，对使用者填入的网址内容、目标网站合法性及其产生的后果<strong>不承担任何责任</strong>。</p>
-        <p>2. 使用者利用Pakr实施的一切行为所产生的<strong>全部法律后果由使用者独立承担</strong>，与Pakr开发者ZSFan无关。</p>
-        <p>3. 开发者ZSFan不对Pakr的适用性、可靠性、安全性作出任何明示或默示担保，不对因使用Pakr产生的任何直接或间接损失承担赔偿责任。</p>
-        <p>4. 若第三方因使用者的违规行为向开发者ZSFan主张权利，使用者应自行承担全部责任并<strong>赔偿开发者ZSFan因此遭受的一切损失</strong>（包括但不限于诉讼费、律师费、赔偿金）。</p>
-
-        <p><strong>五、举报与配合执法</strong></p>
-        <p>开发者ZSFan保留对滥用行为向相关部门举报的权利，并承诺积极配合公安、网信、市场监管等执法机构依法开展的调查取证工作。一经发现使用Pakr从事违法犯罪活动，开发者ZSFan将立即终止相关服务并配合执法。</p>
-
-        <p><strong>六、知识产权</strong></p>
-        <p>Pakr源代码、界面设计及相关技术文档的知识产权归开发者ZSFan所有。使用者封装后的应用程序中所包含的第三方网站内容，其知识产权归原权利人所有，与Pakr开发者ZSFan无关。</p>
-
-        <p style="color:#d97706;background:#fef9ee;border:1px solid #fde68a;border-radius:8px;padding:12px 14px;font-size:12px;line-height:1.8"><strong>七、警告：</strong>网络空间不是法外之地。利用技术工具实施诈骗、侵权等违法行为，依据《中华人民共和国刑法》《网络安全法》《个人信息保护法》等法律法规，将面临刑事追诉、民事赔偿及行政处罚。请务必合法合规使用Pakr。</p>
-
-        <p style="font-size:11px;color:#bbb;text-align:center;padding-top:4px">— 已阅读至底部 —</p>
-      </div>
-      <div class="disc-scroll-hint" id="discScrollHint">
-        <span>向下滚动阅读全部内容</span>
-      </div>
+    <!-- 全局随机数范围设置 -->
+    <div class="global-setting">
+        <span>🎲 随机数生成范围：</span>
+        <input type="number" id="randMin" value="-20">
+        <span>至</span>
+        <input type="number" id="randMax" value="20">
+        <span style="font-size:12px; color:#888;">(修改后点击任意“生成矩阵”按钮生效)</span>
     </div>
-    <div class="disc-foot">
-      <!-- disc-scroll-tip 已移除 -->
-      <div class="disc-actions">
-        <button class="disc-decline" onclick="window.location.href='https://www.baidu.com'">不同意</button>
-        <button class="disc-accept unlocked" id="discAcceptBtn" onclick="tryAcceptDisclaimer()">同意并继续</button>
-      </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab(1)">第1章 行列式</div>
+        <div class="tab" onclick="switchTab(2)">第2章 矩阵运算</div>
+        <div class="tab" onclick="switchTab(3)">第3章 向量组</div>
+        <div class="tab" onclick="switchTab(4)">第4章 线性方程组</div>
+        <div class="tab" onclick="switchTab(5)">第5章 特征值</div>
     </div>
-  </div>
+
+    <!-- 第1章：行列式 -->
+    <div id="panel1" class="panel active">
+        <h3>行列式计算</h3>
+        <div class="form-group">
+            <label>矩阵阶数 n：</label>
+            <input type="number" id="detN" value="3" min="1" max="10">
+            <button class="btn btn-sm" onclick="generateMatrix('det')" style="margin-left:10px;">生成矩阵</button>
+        </div>
+        <div id="detMatrixContainer"></div>
+        <button class="btn" onclick="calcDet()">计算行列式</button>
+        <div id="detResult" class="result" style="display:none;"></div>
+        
+        <hr style="margin: 25px 0; border: 0; border-top: 1px dashed #ccc;">
+        
+        <h3>逆序数计算</h3>
+        <div class="form-group">
+            <label>输入数字序列（如 3,1,2 或 3 1 2 或 8 5 3）：</label>
+            <input type="text" id="permInput" value="8 5 3">
+        </div>
+        <button class="btn" onclick="calcInversion()">计算逆序数</button>
+        <div id="invResult" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- 第2章：矩阵运算 -->
+    <div id="panel2" class="panel">
+        <h3>矩阵运算</h3>
+        <div class="form-group">
+            <label>矩阵阶数 n：</label>
+            <input type="number" id="matN" value="3" min="2" max="10">
+            <button class="btn btn-sm" onclick="generateMatrix('mat')" style="margin-left:10px;">生成矩阵 A 和 B</button>
+        </div>
+        <div id="matAContainer" style="margin-top:10px;"><h4>矩阵 A</h4></div>
+        <div id="matBContainer"><h4>矩阵 B</h4></div>
+        <button class="btn" onclick="calcMat()">计算 A+B, A-B, A×B, A的逆</button>
+        <div id="matResult" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- 第3章：向量组 -->
+    <div id="panel3" class="panel">
+        <h3>向量组线性相关性</h3>
+        <div class="form-group">
+            <label>向量个数 m（列数）：</label>
+            <input type="number" id="vecM" value="3" min="1" max="10">
+            <label>向量维数 n（行数）：</label>
+            <input type="number" id="vecN" value="3" min="1" max="10">
+            <button class="btn btn-sm" onclick="generateMatrix('vec')" style="margin-left:10px;">生成向量组</button>
+        </div>
+        <div id="vecMatrixContainer"></div>
+        <button class="btn" onclick="calcVec()">判断线性相关性</button>
+        <div id="vecResult" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- 第4章：线性方程组 -->
+    <div id="panel4" class="panel">
+        <h3>线性方程组求解</h3>
+        <div class="form-group">
+            <label>未知数个数 n：</label>
+            <input type="number" id="eqN" value="3" min="2" max="10">
+            <button class="btn btn-sm" onclick="generateMatrix('eq')" style="margin-left:10px;">生成增广矩阵</button>
+        </div>
+        <div id="eqMatrixContainer"></div>
+        <button class="btn" onclick="calcEq()">求解方程组</button>
+        <div id="eqResult" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- 第5章：特征值 -->
+    <div id="panel5" class="panel">
+        <h3>特征值与特征向量</h3>
+        <div class="form-group">
+            <label>矩阵阶数 n：</label>
+            <input type="number" id="eigN" value="3" min="2" max="5">
+            <button class="btn btn-sm" onclick="generateMatrix('eig')" style="margin-left:10px;">生成矩阵</button>
+        </div>
+        <div id="eigMatrixContainer"></div>
+        <button class="btn" onclick="calcEig()">计算特征值与特征向量</button>
+        <div id="eigResult" class="result" style="display:none;"></div>
+    </div>
 </div>
-
-<nav>
-  <a href="javascript:void(0)" class="nav-logo">
-    <div class="nav-logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-    </div>
-    Pakr
-  </a>
-  <div class="nav-actions">
-    <button id="themeBtn" class="nav-tool" title="切换主题" onclick="toggleTheme()" type="button" aria-label="切换主题">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-    </button>
-    <a href="/Docs" target="_blank" class="nav-tool" title="文档" aria-label="文档">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-    </a>
-    <a href="https://github.com/ZhangShengFan/Pakr" target="_blank" class="nav-tool github" title="GitHub" aria-label="GitHub">
-      <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-    </a>
-  </div>
-</nav>
-
-<!-- 历史记录浮动面板 -->
-
-<div class="content">
-
-  <!-- 左：表单 -->
-  <div>
-    <div class="card">
-      <div class="card-title">
-        填写应用信息
-      </div>
-      <form class="form" id="form" novalidate>
-        <div class="field">
-          <label for="f_url">目标网址</label>
-          <input type="url" id="f_url" placeholder="https://example.com" autocomplete="off" required>
-</div>
-        <div class="field">
-          <label for="f_name">App 名称</label>
-          <input type="text" id="f_name" placeholder="我的应用" required>
-        </div>
-        <div class="field">
-          <label for="f_pkg">包名</label>
-          <input type="text" id="f_pkg" placeholder="com.example.myapp" required>
-        </div>
-        <div class="field">
-            <label for="f_ver">版本号</label>
-            <input type="text" id="f_ver" placeholder="1.0.0" value="1.0.0" required>
-          </div>
-          <div class="icon-field">
-            <div class="field">
-              <label for="f_icon">图标 URL <span style="font-weight:400;color:#999;font-size:11px">（选填，留空使用默认 logo.jpg）</span></label>
-              <input type="url" id="f_icon" placeholder="PNG/JPG 图标地址（留空自动使用仓库 logo.jpg）">
-            </div>
-            <div class="icon-preview" id="iconPreview">
-              <svg class="icon-preview-placeholder" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-              <img id="iconImg" alt="icon">
-            </div>
-          </div>
-
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">禁止截图</div>
-            <div class="toggle-desc">开启后 App 内无法截图/录屏</div>
-          </div>
-          <label class="toggle-switch">
-            <input type="checkbox" id="f_no_screenshot">
-            <span class="toggle-track"></span>
-            <span class="toggle-thumb"></span>
-          </label>
-        </div>
-        <button type="button" class="btn" id="submitBtn" onclick="handleBuildClick()">
-          <svg class="btn-icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          开始打包
-        </button>
-      </form>
-    </div>
-
-    <!-- 状态卡片 -->
-    <div class="status-box" id="statusBox" style="margin-top:16px">
-      <div class="status-header">
-        <div class="status-dot" id="sDot"></div>
-        <div>
-          <div class="status-title" id="sTitle">等待中</div>
-          <div class="status-sub" id="sSub">正在初始化构建任务</div>
-        </div>
-      </div>
-      <div class="progress-wrap"><div class="progress-bar" id="progFill"></div></div>
-      <div class="check-list">
-        <div class="check-item" id="st1">
-          <div class="check-ico"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
-          触发构建任务
-        </div>
-        <div class="check-item" id="st2">
-          <div class="check-ico"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
-          注入参数 &amp; 处理图标
-        </div>
-        <div class="check-item" id="st3">
-          <div class="check-ico"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
-          Gradle 编译 APK
-        </div>
-        <div class="check-item" id="st4">
-          <div class="check-ico"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-5"/></svg></div>
-          签名 &amp; 打包完成
-        </div>
-      </div>
-      <div class="err-msg" id="errBox"></div>
-      <div id="iconFallbackTip" style="display:none;margin-top:10px;font-size:12px;color:#666">图标下载失败，已自动回退为默认 logo.jpg</div>
-      <div id="dlActions"></div>
-      </div>
-    </div>
-  </div>
-
-  </div>
-
-</div>
-
-<footer>
-  <p style="font-size:12px;color:var(--faint);text-align:center;padding:12px 16px;line-height:1.6;max-width:600px;margin:0 auto">
-    Pakr仅供合法用途。禁止用于制作诈骗、钓鱼或任何违法应用。使用者须对其打包内容承担全部法律责任。
-    <br>如发现滥用行为，开发者ZSFan将配合相关执法机构处理。
-  </p>
-</footer>
 
 <script>
-const WORKER = '';
-
-const JAVA_RESERVED_WORDS = new Set([
-  'abstract','assert','boolean','break','byte','case','catch','char','class','const','continue','default','do','double','else','enum','extends','final','finally','float','for','goto','if','implements','import','instanceof','int','interface','long','native','new','package','private','protected','public','return','short','static','strictfp','super','switch','synchronized','this','throw','throws','transient','try','void','volatile','while','true','false','null'
-]);
-
-function normalizePkgSegment(s, fallback='app'){
-  let seg = (s || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '')
-    .trim();
-
-  if(!seg) seg = fallback;
-  if(/^[0-9]/.test(seg)) seg = 'a' + seg;
-  if(!/^[a-z]/.test(seg)) seg = fallback;
-  if(JAVA_RESERVED_WORDS.has(seg)) seg = 'app' + seg;
-  if(seg.length > 24) seg = seg.slice(0, 24) || fallback;
-  return seg;
-}
-
-function uniquePkgSegments(segments){
-  const used = new Set();
-  const out = [];
-  for(let seg of segments){
-    if(!seg) continue;
-    let next = seg;
-    let i = 2;
-    while(used.has(next)){
-      const suffix = String(i);
-      const base = seg.length + suffix.length > 24 ? seg.slice(0, 24 - suffix.length) : seg;
-      next = (base || 'app') + suffix;
-      i++;
+// ==================== 主题与壁纸联动功能 ====================
+const themeConfig = [
+    // 主题1：可爱波奇塔风（暖橙色）
+    { 
+        name: '可爱风',
+        bg: "url('boqita.jpg')",    // 图片背景用 url()
+        icon: 'tu.png',      
+        primary: '#ff8c42',       
+        primaryDark: '#e66a1f',   
+        cardBg: 'rgba(255, 252, 245, 0.85)', 
+        text: '#4a3b32',          
+        border: '#fce4d6'         
+    },
+    // 主题2：校园学术风（东莞理工绿，纯CSS渐变代替图片）
+    { 
+        name: '学术风',
+        bg: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', // 纯色渐变，不怕图片丢失
+        icon: 'dgut.png',    
+        primary: '#007e4b',       
+        primaryDark: '#005c36',   
+        cardBg: 'rgba(255, 255, 255, 0.95)', 
+        text: '#1a202c',          
+        border: '#c6f6d5'         
     }
-    used.add(next);
-    out.push(next);
-  }
-  return out;
-}
+];
 
-function generatePackageName(rawUrl, appName=''){
-  try{
-    const u = new URL(rawUrl.includes('://') ? rawUrl : 'https://' + rawUrl);
-    const host = (u.hostname || '').toLowerCase().replace(/^www\./,'');
-    const parts = host.split('.').filter(Boolean);
-    if(parts.length < 2) return '';
+let currentThemeIndex = 0;
 
-    const rawTld = (parts[parts.length - 1] || '').toLowerCase();
-    const mainDomainParts = parts.slice(0, -1);
-    const rootDomain = mainDomainParts[mainDomainParts.length - 1] || 'app';
-    const mergedDomain = normalizePkgSegment(mainDomainParts.join(''), 'app');
-    const appSeg = normalizePkgSegment(appName, 'app');
-
-    if(JAVA_RESERVED_WORDS.has(rawTld)){
-      return uniquePkgSegments(['zsfan', mergedDomain || normalizePkgSegment(rootDomain, 'app'), appSeg || 'app']).join('.');
+// 应用主题（同时切换背景、图标和颜色）
+function applyTheme(index) {
+    const theme = themeConfig[index];
+    
+    // 1. 换背景图（直接使用 theme.bg，它可能是 url(...) 也可能是 linear-gradient(...)）
+    document.documentElement.style.setProperty('--bg-image', theme.bg);
+    
+    // 2. 换右下角彩蛋图标
+    const iconImg = document.getElementById('eggIcon');
+    if (iconImg) {
+        iconImg.src = theme.icon;
     }
-
-    const tld = normalizePkgSegment(rawTld, 'com');
-    const domain = normalizePkgSegment(rootDomain, 'app');
-    const subs = mainDomainParts.slice(0, -1).reverse().map(x => normalizePkgSegment(x, 'app')).filter(Boolean);
-    const segments = uniquePkgSegments([tld, domain, ...subs, appSeg].filter(Boolean));
-    return segments.join('.');
-  }catch(_){ return ''; }
+    
+    // 3. 动态修改 CSS 变量，实现界面换肤
+    document.documentElement.style.setProperty('--primary', theme.primary);
+    document.documentElement.style.setProperty('--primary-dark', theme.primaryDark);
+    document.documentElement.style.setProperty('--card-bg', theme.cardBg);
+    document.documentElement.style.setProperty('--text', theme.text);
+    document.documentElement.style.setProperty('--border', theme.border);
+    
+    // 4. 存入浏览器
+    localStorage.setItem('userThemeIndex', index);
 }
 
-function setupAutoPackageName(){
-  const urlInput = document.getElementById('f_url');
-  const nameInput = document.getElementById('f_name');
-  const pkgInput = document.getElementById('f_pkg');
-  if(!urlInput || !nameInput || !pkgInput) return;
+// 点击彩蛋触发切换
+function changeWallpaper() {
+    soundClick(); 
+    currentThemeIndex = (currentThemeIndex + 1) % themeConfig.length;
+    applyTheme(currentThemeIndex);
+}
 
-  let pkgTouched = !!pkgInput.value.trim();
-  pkgInput.addEventListener('input', () => {
-    pkgTouched = !!pkgInput.value.trim();
-  });
-
-  function fillPkg(force=false){
-    const next = generatePackageName(urlInput.value.trim(), nameInput.value.trim());
-    if(!next) return;
-    if(force || !pkgTouched || !pkgInput.value.trim()){
-      pkgInput.value = next;
-      pkgInput.dispatchEvent(new Event('input', { bubbles:true }));
-      pkgTouched = false;
+// 页面加载时，读取上次选的主题
+window.addEventListener('DOMContentLoaded', () => {
+    const savedIndex = localStorage.getItem('userThemeIndex');
+    if (savedIndex !== null) {
+        currentThemeIndex = parseInt(savedIndex);
+        if (currentThemeIndex >= themeConfig.length) currentThemeIndex = 0;
+        applyTheme(currentThemeIndex);
+    } else {
+        applyTheme(0);
     }
-  }
+});
 
-  urlInput.addEventListener('input', () => fillPkg(false));
-  urlInput.addEventListener('blur', () => fillPkg(false));
-  nameInput.addEventListener('input', () => fillPkg(false));
-  fillPkg(false);
-}
+// ==================== 音效引擎 (Minecraft 风格) ====================
+let audioCtx = null;
 
-/* ── Form ── */
-const form      = document.getElementById('form');
-const submitBtn = document.getElementById('submitBtn');
-const statusBox = document.getElementById('statusBox');
-const sDot      = document.getElementById('sDot');
-const sTitle    = document.getElementById('sTitle');
-const sSub      = document.getElementById('sSub');
-const progFill  = document.getElementById('progFill');
-const errBox    = document.getElementById('errBox');
-
-function clearErrDetails(){
-  document.querySelectorAll('#statusBox .err-detail').forEach(el => el.remove());
-}
-
-let pollTimer = null;
-let logTimer = null;
-let busy = false;
-let buildStartTime = 0;
-let currentRunId = null;
-
-function setBusy(v){ busy=v; submitBtn.disabled=v; }
-
-function setStep(n, state){
-  const el = document.getElementById('st'+n);
-  el.className = 'check-item ' + state;
-}
-
-function setProgress(p){ progFill.style.width = p + '%'; }
-
-function setTitle(t, s){
-  sTitle.textContent = t;
-  sSub.textContent   = s;
-}
-
-function setDot(state){
-  sDot.className = 'status-dot ' + state;
-}
-
-function showErr(msg){
-  errBox.textContent = msg;
-  errBox.classList.add('show');
-  setDot('fail');
-  setTitle('提交失败', '');
-  setBusy(false);
-}
-
-function showStatus(){ statusBox.classList.add('show'); }
-
-/* Validate */
-function validate(){
-  let ok = true;
-  ['f_url','f_name','f_pkg','f_ver'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(!el.value.trim()){ el.classList.add('err'); ok=false; }
-    else el.classList.remove('err');
-  });
-  const pkg = document.getElementById('f_pkg').value.trim();
-  if(!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){2,}$/.test(pkg)){
-    document.getElementById('f_pkg').classList.add('err');
-    ok = false;
-  }
-  return ok;
-}
-
-async function handleBuildClick(){
-  const e = { preventDefault:()=>{} };
-  if(busy) return;
-  errBox.classList.remove('show');
-  clearErrDetails();
-  if(!validate()) return;
-
-  const data = {
-    app_url:      document.getElementById('f_url').value.trim(),
-    app_name:     document.getElementById('f_name').value.trim(),
-    package_name: document.getElementById('f_pkg').value.trim(),
-    version_name: document.getElementById('f_ver').value.trim(),
-    icon_url:      document.getElementById('f_icon').value.trim(),
-    no_screenshot: document.getElementById('f_no_screenshot').checked ? 'true' : 'false',
-
-  };
-
-  setBusy(true);
-  buildStartTime = Date.now();
-  showStatus();
-  setDot('running');
-  setTitle('提交中', '正在触发 GitHub Actions…');
-  setProgress(6);
-  [1,2,3,4].forEach(n => setStep(n, ''));
-
-  try {
-    const ctl = new AbortController();
-    const buildTimeout = setTimeout(() => ctl.abort(), 25000);
-    const res  = await fetch(WORKER + '/build', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(data),
-      signal: ctl.signal,
-    });
-    clearTimeout(buildTimeout);
-    const json = await res.json();
-    if(!res.ok) throw new Error(json.error || '触发失败');
-
-    setStep(1,'done'); setStep(2,'active'); setProgress(18);
-    setTitle('排队中','等待 GitHub Actions 启动…');
-    startPoll(json.run_id || null, data, json.build_id || null, json.dispatched_at || null);
-
-  } catch(err){
-    const msg = err && err.name === 'AbortError'
-      ? '触发 GitHub Actions 超时，请稍后重试'
-      : (err.message.includes('fetch') || err.message.includes('network') || err.message === 'Failed to fetch'
-        ? '网络连接失败，请检查网络后重试'
-        : err.message);
-    showErr(msg);
-  } finally {
-    setBusy(false);
-  }
-}
-
-function startPoll(runId, data, buildId=null, dispatchedAt=null){
-  let elapsed = 0;
-  const MAX_WAIT = 1800; // 最长等 30 分钟
-  currentRunId = runId;
-  pollTimer = setInterval(async ()=>{
-    elapsed += 5;
+function initAudio() {
     try {
-      const qs = runId ? ('run_id=' + encodeURIComponent(runId)) : ('build_id=' + encodeURIComponent(buildId) + (dispatchedAt ? '&dispatched_at=' + encodeURIComponent(dispatchedAt) : ''));
-      const r    = await fetch(WORKER + '/status?' + qs);
-      const data = await r.json();
-      if(!runId && data.run_id){ runId = data.run_id; currentRunId = runId; startLogPoll(runId); }
-      const est  = Math.min(18 + Math.round(elapsed / 300 * 70), 88);
-
-      if(data.status === 'queued' || data.status === 'waiting'){
-        setDot('running');
-        setProgress(Math.min(8 + Math.floor(elapsed / 15), 15));
-        const waitHint = elapsed >= 60
-          ? '排队时间较长，可能是 GitHub Actions 当前繁忙，仍在等待运行器…'
-          : '等待 GitHub Actions 分配运行器…';
-        setTitle('排队中', waitHint);
-      }
-
-      if(data.status === 'in_progress'){
-        setDot('running');
-        const pct = data.progress || est;
-        setProgress(Math.min(pct, 95));
-        const step = data.current_step || '';
-        const si = data.step_index||0, st = data.step_total||5;
-        const stepLabel = st>0 ? ' · 步骤 ' + si + '/' + st : '';
-        if(step.includes('Inject') || pct < 20){
-          setStep(2,'active'); setTitle('构建中','注入参数 & 处理图标…'+stepLabel);
-        } else if(step.includes('Process') || pct < 35){
-          setStep(2,'done'); setStep(3,'active'); setTitle('构建中','处理图标资源…'+stepLabel);
-        } else if(step.includes('Build') || pct < 85){
-          setStep(2,'done'); setStep(3,'active'); setTitle('编译中','Gradle 正在编译 APK…'+stepLabel);
-        } else {
-          setStep(3,'done'); setStep(4,'active'); setTitle('签名中','正在签名打包…'+stepLabel);
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
-      }
-
-      if(data.status === 'completed'){
-        clearInterval(pollTimer);
-                if(data.conclusion === 'success' || data.artifacts?.length || data.artifact_id){
-          // 成功，或者虽然结论异常但 artifacts 存在，都给下载链接
-          setStep(2,'done'); setStep(3,'done'); setStep(4,'done');
-            setProgress(100); setDot('success');
-          const _elapsed = buildStartTime ? Math.round((Date.now()-buildStartTime)/1000) : 0;
-          const _min = Math.floor(_elapsed/60), _sec = _elapsed%60;
-          const _timeStr = _elapsed+'秒';
-          setTitle('打包完成 🎉', '耗时 ' + _timeStr);
-          setBusy(false);
-          renderDownloadButtons(data, runId);
-          addHistory(data);
-        } else if(data.conclusion === 'failure'){
-          setStep(4,'fail');
-          const failStep = data.failed_step ? `步骤「${data.failed_step}」失败` : '构建失败';
-          showErr(data.failed_log ? (failStep + '，错误日志如下') : (failStep + '，请检查参数后重试'));
-          if (data.failed_log) {
-            clearErrDetails();
-            const box = document.getElementById('statusBox');
-            const detail = document.createElement('div');
-            detail.className = 'err-detail';
-            const safeLog = data.failed_log
-              .replace(/&/g,'&amp;')
-              .replace(/</g,'&lt;')
-              .replace(/>/g,'&gt;');
-            const hint = /compileReleaseKotlin FAILED[\s\S]*Compilation error\. See log for more details/i.test(data.failed_log)
-              ? '<div style="margin-top:8px;color:#666;font-size:12px">当前 Worker 返回的仍是摘要日志，说明线上 Worker 还没发布到最新版本；需要重新部署 Worker 后才能显示完整 Kotlin 编译行号。</div>'
-              : '';
-            detail.innerHTML = `<div class="err-detail-title">错误日志</div><div class="err-detail-log">${safeLog}</div>${hint}`;
-            box.appendChild(detail);
-          }
-          setBusy(false);
-        } else {
-          // cancelled / timed_out 等，尝试拿 artifacts
-          tryFetchArtifacts(runId, data);
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
         }
-        return;
-      }
-
-      // 超时保护：15 分钟后先查一次 artifacts
-      if(elapsed >= MAX_WAIT){
-        clearInterval(pollTimer);
-                showErr('GitHub Actions 长时间未启动，可能是运行器繁忙，请稍后重试');
-        tryFetchArtifacts(runId, data);
-      }
-
-    } catch(e){ /* 网络抖动忽略 */ }
-  }, 5000);
+    } catch (e) {
+        console.log("浏览器不支持音频", e);
+    }
 }
 
-async function tryFetchArtifacts(runId, data){
-  try {
-    const r = await fetch(WORKER + '/status?run_id=' + runId);
-    const fresh = await r.json();
-    if(fresh.artifacts?.length || fresh.artifact_id){
-      setStep(2,'done'); setStep(3,'done'); setStep(4,'done');
-        setProgress(100); setDot('success');
-      const _elapsed = buildStartTime ? Math.round((Date.now()-buildStartTime)/1000) : 0;
-          const _min = Math.floor(_elapsed/60), _sec = _elapsed%60;
-          const _timeStr = _elapsed+'秒';
-          setTitle('打包完成 🎉', '耗时 ' + _timeStr);
-      setBusy(false);
-      renderDownloadButtons(fresh, runId);
-      addHistory(fresh);
+function playTone(freq, type, duration, vol, freqEnd = null) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    
+    if (freqEnd) {
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + duration);
     } else {
-      setDot('fail');
-      setTitle('超时', '前端轮询超时，但构建可能已经完成');
-      const actionsUrl = runId ? `https://github.com/ZSFan888/APK/actions/runs/${runId}` : 'https://github.com/ZSFan888/APK/actions';
-      showErr(`前端等待超时，但构建可能已成功。请先打开 <a href="${actionsUrl}" target="_blank" style="color:#111">本次 GitHub Actions 运行</a> 下载 Artifact。`);
-      setBusy(false);
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
     }
-  } catch(e){
-    setDot('fail');
-    showErr('网络错误，请稍后重试');
-    setBusy(false);
-  }
+    
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
 }
 
-/* ── QR 弹窗（全局单例） ── */
-(function(){
-  if(document.getElementById('qrModal')) return;
-  const m = document.createElement('div');
-  m.id='qrModal'; m.className='qr-modal';
-  m.innerHTML=`<div class="qr-box">
-    <div class="qr-box-handle"></div>
-    <div class="qr-box-title" id="qrTitle">扫码下载</div>
-    <div class="qr-box-sub" id="qrSub">用手机扫描二维码即可下载</div>
-    <canvas id="qrCanvas" width="200" height="200"></canvas>
-    <button class="qr-box-close" onclick="document.getElementById('qrModal').classList.remove('show')">关闭</button>
-  </div>`;
-  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('show'); });
-  document.body.appendChild(m);
-})();
+function soundClick() { initAudio(); playTone(600, 'triangle', 0.08, 0.15, 200); }
+function soundGenerate() { initAudio(); playTone(150, 'square', 0.1, 0.1, 50); }
+function soundSuccess() {
+    initAudio();
+    playTone(800, 'sine', 0.1, 0.1);
+    setTimeout(() => playTone(1200, 'sine', 0.1, 0.1), 60);
+    setTimeout(() => playTone(1600, 'sine', 0.15, 0.1), 120);
+}
+function soundError() { initAudio(); playTone(150, 'sawtooth', 0.3, 0.1, 80); }
 
-function showQR(url, label){
-  document.getElementById('qrTitle').textContent = label + ' 扫码下载';
-  document.getElementById('qrModal').classList.add('show');
-  function draw(){
-    try{
-      const qr=qrcode(0,'M'); qr.addData(url); qr.make();
-      const size=200,cells=qr.getModuleCount(),cell=Math.floor(size/cells);
-      const pad=Math.floor((size-cells*cell)/2);
-      const cv=document.getElementById('qrCanvas');
-      cv.width=cv.height=size;
-      const ctx=cv.getContext('2d');
-      ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size);
-      ctx.fillStyle='#111';
-      for(let r=0;r<cells;r++) for(let c=0;c<cells;c++)
-        if(qr.isDark(r,c)) ctx.fillRect(pad+c*cell,pad+r*cell,cell,cell);
-    }catch(e){ console.error('QR draw error',e); }
-  }
-  if(window.qrcode){ draw(); return; }
-  const s=document.createElement('script');
-  s.src='https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
-  s.onload=draw;
-  document.head.appendChild(s);
+// ==================== 页面逻辑 ====================
+
+function switchTab(num) {
+    soundClick();
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === num - 1));
+    document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === num - 1));
 }
 
-function renderDownloadButtons(data, runId){
-  const dlActions=document.getElementById('dlActions');
-  dlActions.innerHTML='';
-  dlActions.style.cssText='display:block;margin-top:4px';
+function generateMatrix(type) {
+    soundGenerate(); 
 
-  const artifacts=data.artifacts||(data.artifact_id?[{id:data.artifact_id,name:data.artifact_name||'APK'}]:[]);
+    let minVal = parseInt(document.getElementById('randMin').value);
+    let maxVal = parseInt(document.getElementById('randMax').value);
+    
+    if (isNaN(minVal)) minVal = -20;
+    if (isNaN(maxVal)) maxVal = 20;
+    if (minVal > maxVal) { let temp = minVal; minVal = maxVal; maxVal = temp; }
 
-  const DL_ICO  ='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M5 14l7 7 7-7"/><line x1="3" y1="21" x2="21" y2="21"/></svg>';
-  const QR_ICO  ='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="5" y="5" width="3" height="3"/><rect x="16" y="5" width="3" height="3"/><rect x="5" y="16" width="3" height="3"/><path d="M14 14h3v3M17 17h3v3M14 17v3"/></svg>';
-  const CP_ICO  ='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-  const OK_ICO  ='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  const ARR_ICO ='<svg class="apk-trigger-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>';
+    const randVal = () => Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
 
-  function makeCard(dlUrl, label, badge, defaultOpen){
-    // 卡片容器
-    const card=document.createElement('div');
-    card.className='apk-card'+(defaultOpen?' open':'');
-
-    // 触发头部
-    const trigger=document.createElement('button');
-    trigger.className='apk-trigger';
-    trigger.type='button';
-    trigger.innerHTML=
-      '<span class="apk-trigger-left">'+
-        '<span>'+label+'</span>'+
-        '<span class="apk-trigger-badge">'+badge+'</span>'+
-      '</span>'+ARR_ICO;
-    trigger.addEventListener('click',()=>{
-      const wasOpen=card.classList.contains('open');
-      document.querySelectorAll('.apk-card.open').forEach(c=>c.classList.remove('open'));
-      if(!wasOpen) card.classList.add('open');
-    });
-
-    // 操作区（CSS 控制 display）
-    const actions=document.createElement('div');
-    actions.className='apk-actions';
-
-    // 下载
-    const dlBtn=document.createElement('button');
-    dlBtn.type='button'; dlBtn.className='dl-btn';
-    dlBtn.innerHTML=DL_ICO+' 下载 APK';
-    dlBtn.addEventListener('click',()=>{ window.location.href=dlUrl; });
-
-    // 二维码
-    const qrBtn=document.createElement('button');
-    qrBtn.type='button'; qrBtn.className='qr-btn';
-    qrBtn.innerHTML=QR_ICO+' 扫码下载';
-    qrBtn.addEventListener('click',()=>{ showQR(new URL(dlUrl,window.location.href).href, label); });
-
-    // 复制链接
-    const cpBtn=document.createElement('button');
-    cpBtn.type='button'; cpBtn.className='cp-btn';
-    cpBtn.innerHTML=CP_ICO+' 复制链接';
-    cpBtn.addEventListener('click',(e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      const fullUrl=new URL(dlUrl,window.location.href).href;
-      const done=()=>{
-        cpBtn.innerHTML=OK_ICO+' 已复制';
-        cpBtn.classList.add('copied');
-        setTimeout(()=>{ cpBtn.innerHTML=CP_ICO+' 复制链接'; cpBtn.classList.remove('copied'); },2000);
-      };
-      const fail=()=>{
-        cpBtn.innerHTML=CP_ICO+' 复制失败';
-        setTimeout(()=>{ cpBtn.innerHTML=CP_ICO+' 复制链接'; },2000);
-      };
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(fullUrl).then(done).catch(()=>fallbackCopy(fullUrl,done,fail));
-      } else {
-        fallbackCopy(fullUrl,done,fail);
-      }
-    });
-
-    actions.appendChild(dlBtn);
-    actions.appendChild(qrBtn);
-    actions.appendChild(cpBtn);
-    card.appendChild(trigger);
-    card.appendChild(actions);
-    dlActions.appendChild(card);
-  }
-
-  function fallbackCopy(text,cb,fail){
-    const t=document.createElement('textarea');
-    t.value=text;
-    t.setAttribute('readonly','');
-    t.style.cssText='position:fixed;top:0;left:-9999px;opacity:0;pointer-events:none';
-    document.body.appendChild(t);
-    t.focus();
-    t.select();
-    t.setSelectionRange(0, t.value.length);
-    let ok=false;
-    try{ ok=document.execCommand('copy'); }catch(e){ ok=false; }
-    document.body.removeChild(t);
-    if(ok){ cb && cb(); }
-    else if(fail){ fail(); }
-  }
-
-  if(artifacts.length===0){
-    makeCard(WORKER+'/download?run_id='+runId,'APK','下载',true);
-  } else {
-    artifacts.forEach((art,i)=>{
-      const is64 =art.name&&/arm64/i.test(art.name);
-      const is32 =art.name&&/armeabi/i.test(art.name);
-      const label=is64?'64 位 APK':is32?'32 位 APK':'APK';
-      const badge=is64?'64 Bit':is32?'32 Bit':'APK';
-      const dlUrl=WORKER+'/download?run_id='+runId+'&artifact_id='+art.id;
-      makeCard(dlUrl,label,badge,i===0);
-    });
-  }
-}
-
-const SAVE_KEYS = ['f_url','f_name','f_pkg','f_ver','f_icon'];
-function saveForm(){
-  const saved = {};
-  SAVE_KEYS.forEach(id => { saved[id] = document.getElementById(id).value; });
-  localStorage.setItem('apkbuilder_form', JSON.stringify(saved));
-}
-function loadForm(){
-  try {
-    const saved = JSON.parse(localStorage.getItem('apkbuilder_form') || '{}');
-    SAVE_KEYS.forEach(id => {
-      if(saved[id]) document.getElementById(id).value = saved[id];
-    });
-  } catch(e){}
-}
-SAVE_KEYS.forEach(id => {
-  document.getElementById(id).addEventListener('input', saveForm);
-});
-loadForm();
-setupAutoPackageName();
-
-/* ── 图标预览 ── */
-const iconInput   = document.getElementById('f_icon');
-const iconImg     = document.getElementById('iconImg');
-const iconPreview = document.getElementById('iconPreview');
-
-function triggerIconPreview(url){
-  iconPreview.className = 'icon-preview';
-  iconImg.style.display = 'none';
-  if(!url || (!url.startsWith('http://') && !url.startsWith('https://'))){
-    // 空或非 URL，回到默认占位
-    return;
-  }
-  iconPreview.classList.add('loading');
-  const tmp = new Image();
-  tmp.onload  = () => {
-    iconImg.src = tmp.src;
-    iconImg.style.display = 'block';
-    iconPreview.className = 'icon-preview ok';
-  };
-  tmp.onerror = () => {
-    iconImg.style.display = 'none';
-    iconPreview.className = 'icon-preview err';
-  };
-  tmp.src = url;
-}
-
-iconInput.addEventListener('input', () => {
-  triggerIconPreview(iconInput.value.trim());
-});
-iconInput.addEventListener('change', () => {
-  triggerIconPreview(iconInput.value.trim());
-});
-window.addEventListener('pageshow', () => {
-  triggerIconPreview(iconInput.value.trim());
-});
-triggerIconPreview(iconInput.value.trim());
-
-
-function addHistory(data){
-  const item = {
-    run_id:       data.run_id || currentRunId,
-    app_name:     document.getElementById('f_name').value.trim(),
-    package_name: document.getElementById('f_pkg').value.trim(),
-    version_name: document.getElementById('f_ver').value.trim(),
-    icon_url:     document.getElementById('f_icon').value.trim(),
-    app_url:      document.getElementById('f_url').value.trim(),
-    artifacts:    data.artifacts || (data.artifact_id ? [{id:data.artifact_id,name:data.artifact_name||'APK'}] : []),
-    ts: Date.now(),
-    elapsed: buildStartTime ? Math.round((Date.now()-buildStartTime)/1000) : 0,
-  };
-  h.unshift(item);
-}
-
-/* ── Theme ── */
-function toggleTheme(){
-  const h = document.documentElement;
-  const dark = h.getAttribute('data-theme') === 'dark';
-  h.setAttribute('data-theme', dark ? 'light' : 'dark');
-  updateThemeIcon(!dark);
-}
-function updateThemeIcon(dark){
-  const btn = document.getElementById('themeBtn');
-  if(!btn) return;
-  btn.innerHTML = dark
-    ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
-    : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
-}
-(function(){
-  const dark = window.matchMedia('(prefers-color-scheme:dark)').matches;
-  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  updateThemeIcon(dark);
-})();
-
-</script>
-
-<script>
-(function(){
-  const JAVA_KW = new Set(["abstract","assert","boolean","break","byte","case","catch","char","class","const","continue","default","do","double","else","enum","extends","final","finally","float","for","goto","if","implements","import","instanceof","int","interface","long","native","new","package","private","protected","public","return","short","static","strictfp","super","switch","synchronized","this","throw","throws","transient","try","void","volatile","while"]);
-  const pkgInput = document.getElementById('f_pkg');
-  if(!pkgInput) return;
-  // 找或创建错误提示元素
-  let errEl = document.getElementById('pkg-kw-error');
-  if(!errEl){
-    errEl = document.createElement('div');
-    errEl.id = 'pkg-kw-error';
-    errEl.style.cssText = 'color:#dc2626;font-size:12px;margin-top:4px;display:none';
-    pkgInput.parentNode.insertBefore(errEl, pkgInput.nextSibling);
-  }
-  pkgInput.addEventListener('input', function(){
-    const segs = this.value.split('.');
-    const bad = segs.find(s => JAVA_KW.has(s));
-    if(bad){
-      errEl.textContent = '「' + bad + '」是 Java 保留关键字，不能用作包名的一部分（如 do、if、for、class 等）';
-      errEl.style.display = 'block';
-      this.style.borderColor = '#dc2626';
-    } else {
-      errEl.style.display = 'none';
-      this.style.borderColor = '';
+    if (type === 'det') {
+        const n = parseInt(document.getElementById('detN').value);
+        const container = document.getElementById('detMatrixContainer');
+        let html = '';
+        for (let i = 0; i < n; i++) {
+            html += '<div class="matrix-row">';
+            for (let j = 0; j < n; j++) {
+                html += `<input type="number" id="det_${i}_${j}" value="${randVal()}" step="any">`;
+            }
+            html += '</div>';
+        }
+        container.innerHTML = html;
+    } else if (type === 'mat') {
+        const n = parseInt(document.getElementById('matN').value);
+        const containerA = document.getElementById('matAContainer');
+        const containerB = document.getElementById('matBContainer');
+        let htmlA = '', htmlB = '';
+        for (let i = 0; i < n; i++) {
+            htmlA += '<div class="matrix-row">';
+            htmlB += '<div class="matrix-row">';
+            for (let j = 0; j < n; j++) {
+                htmlA += `<input type="number" id="matA_${i}_${j}" value="${randVal()}" step="any">`;
+                htmlB += `<input type="number" id="matB_${i}_${j}" value="${randVal()}" step="any">`;
+            }
+            htmlA += '</div>';
+            htmlB += '</div>';
+        }
+        containerA.innerHTML = '<h4>矩阵 A</h4>' + htmlA;
+        containerB.innerHTML = '<h4>矩阵 B</h4>' + htmlB;
+    } else if (type === 'vec') {
+        const m = parseInt(document.getElementById('vecM').value);
+        const n = parseInt(document.getElementById('vecN').value);
+        const container = document.getElementById('vecMatrixContainer');
+        let html = '';
+        for (let i = 0; i < n; i++) {
+            html += '<div class="matrix-row">';
+            for (let j = 0; j < m; j++) {
+                html += `<input type="number" id="vec_${i}_${j}" value="${randVal()}" step="any">`;
+            }
+            html += '</div>';
+        }
+        container.innerHTML = html;
+    } else if (type === 'eq') {
+        const n = parseInt(document.getElementById('eqN').value);
+        const container = document.getElementById('eqMatrixContainer');
+        let html = '';
+        for (let i = 0; i < n; i++) {
+            html += '<div class="matrix-row">';
+            for (let j = 0; j <= n; j++) {
+                html += `<input type="number" id="eq_${i}_${j}" value="${randVal()}" step="any">`;
+            }
+            html += '</div>';
+        }
+        container.innerHTML = html;
+    } else if (type === 'eig') {
+        const n = parseInt(document.getElementById('eigN').value);
+        const container = document.getElementById('eigMatrixContainer');
+        let html = '';
+        for (let i = 0; i < n; i++) {
+            html += '<div class="matrix-row">';
+            for (let j = 0; j < n; j++) {
+                html += `<input type="number" id="eig_${i}_${j}" value="${randVal()}" step="any">`;
+            }
+            html += '</div>';
+        }
+        container.innerHTML = html;
     }
-  });
-})();
-</script>
-
-<script>
-// 免责声明：浏览器访问显示，App 内（PakrApp UA）跳过
-(function(){
-  var overlay=document.getElementById('disclaimerOverlay');
-  if(navigator.userAgent && navigator.userAgent.indexOf('PakrApp') !== -1) return;
-  if(overlay) overlay.style.display='flex';
-  var body = document.getElementById('discBody');
-  var hint = document.getElementById('discScrollHint');
-  if(!body) return;
-
-  var _discReadAll = false;
-
-  function checkScrolled(){
-    var atBottom = body.scrollTop + body.clientHeight >= body.scrollHeight - 8;
-    if(atBottom){
-      _discReadAll = true;
-      if(hint) hint.style.opacity = '0';
-    }
-  }
-  body.addEventListener('scroll', checkScrolled);
-  setTimeout(function(){
-    if(body.scrollHeight <= body.clientHeight + 8) checkScrolled();
-  }, 200);
-})();
-
-var _discToastTimer = null;
-function showDiscToast(msg){
-  var t = document.getElementById('discToast');
-  if(!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  if(_discToastTimer) clearTimeout(_discToastTimer);
-  _discToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2000);
 }
 
-function tryAcceptDisclaimer(){
-  if(typeof _discReadAll === 'undefined' || !_discReadAll){
-    var body = document.getElementById('discBody');
-    if(body){
-      var atBottom = body.scrollTop + body.clientHeight >= body.scrollHeight - 40;
-      if(!atBottom){
-        showDiscToast('请先滑动阅读全部内容');
+function calcDet() {
+    const n = parseInt(document.getElementById('detN').value);
+    const resultDiv = document.getElementById('detResult');
+    let output = '';
+    try {
+        let matrix = [];
+        for (let i = 0; i < n; i++) {
+            let row = [];
+            for (let j = 0; j < n; j++) {
+                row.push(parseFloat(document.getElementById(`det_${i}_${j}`).value));
+            }
+            matrix.push(row);
+        }
+        const det = math.det(matrix);
+        output = `行列式 det(A) = ${det.toFixed(10)}`;
+        resultDiv.className = 'result success';
+        soundSuccess();
+    } catch (e) {
+        output = "❌ 错误：" + e.message;
+        resultDiv.className = 'result error';
+        soundError();
+    }
+    resultDiv.textContent = output;
+    resultDiv.style.display = 'block';
+}
+
+function calcInversion() {
+    const str = document.getElementById('permInput').value.trim();
+    const resultDiv = document.getElementById('invResult');
+    let output = '';
+    
+    if (!str) {
+        output = "❌ 错误：请输入数字序列";
+        resultDiv.className = 'result error';
+        resultDiv.textContent = output;
+        resultDiv.style.display = 'block';
+        soundError();
         return;
-      }
     }
-  }
-  acceptDisclaimer();
+
+    try {
+        let arr = [];
+        if (str.includes(' ') || str.includes(',')) {
+            arr = str.split(/[\s,]+/).map(Number);
+        } else if (/^\d+$/.test(str)) {
+            arr = str.split('').map(Number);
+        } else {
+            throw new Error("输入格式错误，请输入数字！");
+        }
+
+        const n = arr.length;
+        if (n < 2) throw new Error("至少需要两个数字才能计算逆序数！");
+
+        let invCount = 0;
+        for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+                if (arr[i] > arr[j]) invCount++;
+            }
+        }
+
+        const type = invCount % 2 === 0 ? "偶排列" : "奇排列";
+        output = `数字序列 [${arr.join(', ')}] 的逆序数为：${invCount}\n👉 这是一个${type}`;
+        resultDiv.className = 'result success';
+        soundSuccess();
+    } catch (e) {
+        output = "❌ 错误：" + e.message;
+        resultDiv.className = 'result error';
+        soundError();
+    }
+    resultDiv.textContent = output;
+    resultDiv.style.display = 'block';
 }
 
-function acceptDisclaimer(){
-  var el=document.getElementById('disclaimerOverlay');
-  if(el){ el.style.opacity='0'; el.style.transition='opacity 0.3s'; setTimeout(function(){ el.style.display='none'; },300); }
+function calcMat() {
+    const n = parseInt(document.getElementById('matN').value);
+    const resultDiv = document.getElementById('matResult');
+    let output = '';
+    try {
+        let A = [], B = [];
+        for (let i = 0; i < n; i++) {
+            let rowA = [], rowB = [];
+            for (let j = 0; j < n; j++) {
+                rowA.push(parseFloat(document.getElementById(`matA_${i}_${j}`).value));
+                rowB.push(parseFloat(document.getElementById(`matB_${i}_${j}`).value));
+            }
+            A.push(rowA); B.push(rowB);
+        }
+        
+        const sum = math.add(A, B);
+        const sub = math.subtract(A, B);
+        const mul = math.multiply(A, B);
+        const invA = math.inv(A);
+
+        output += "A + B =\n" + JSON.stringify(sum) + "\n\n";
+        output += "A - B =\n" + JSON.stringify(sub) + "\n\n";
+        output += "A × B =\n" + JSON.stringify(mul) + "\n\n";
+        output += "A 的逆矩阵 =\n" + JSON.stringify(invA) + "\n";
+        resultDiv.className = 'result success';
+        soundSuccess();
+    } catch (e) {
+        output = "❌ 错误：" + e.message;
+        resultDiv.className = 'result error';
+        soundError();
+    }
+    resultDiv.textContent = output;
+    resultDiv.style.display = 'block';
 }
+
+function calcVec() {
+    const m = parseInt(document.getElementById('vecM').value);
+    const n = parseInt(document.getElementById('vecN').value);
+    const resultDiv = document.getElementById('vecResult');
+    let output = '';
+    try {
+        let matrix = [];
+        for (let i = 0; i < n; i++) {
+            let row = [];
+            for (let j = 0; j < m; j++) {
+                row.push(parseFloat(document.getElementById(`vec_${i}_${j}`).value));
+            }
+            matrix.push(row);
+        }
+        const rank = math.rank(matrix);
+        if (rank === m) {
+            output = `矩阵的秩 R(A) = ${rank}，等于向量个数 ${m}。\n👉 结论：向量组线性无关。`;
+        } else {
+            output = `矩阵的秩 R(A) = ${rank}，小于向量个数 ${m}。\n👉 结论：向量组线性相关。`;
+        }
+        resultDiv.className = 'result success';
+        soundSuccess();
+    } catch (e) {
+        output = "❌ 错误：" + e.message;
+        resultDiv.className = 'result error';
+        soundError();
+    }
+    resultDiv.textContent = output;
+    resultDiv.style.display = 'block';
+}
+
+function calcEq() {
+    const n = parseInt(document.getElementById('eqN').value);
+    const resultDiv = document.getElementById('eqResult');
+    let output = '';
+    try {
+        let M = [];
+        for (let i = 0; i < n; i++) {
+            let row = [];
+            for (let j = 0; j <= n; j++) {
+                row.push(parseFloat(document.getElementById(`eq_${i}_${j}`).value));
+            }
+            M.push(row);
+        }
+        
+        let mat = M.map(row => [...row]);
+        let row = 0;
+        for (let col = 0; col < n && row < n; col++) {
+            let pivot = row;
+            for (let i = row + 1; i < n; i++) {
+                if (Math.abs(mat[i][col]) > Math.abs(mat[pivot][col])) pivot = i;
+            }
+            if (Math.abs(mat[pivot][col]) < 1e-10) continue;
+            [mat[row], mat[pivot]] = [mat[pivot], mat[row]];
+            for (let i = row + 1; i < n; i++) {
+                let factor = mat[i][col] / mat[row][col];
+                for (let j = col; j <= n; j++) mat[i][j] -= factor * mat[row][j];
+            }
+            row++;
+        }
+
+        let inconsistent = false;
+        for (let i = 0; i < n; i++) {
+            let allZero = true;
+            for (let j = 0; j < n; j++) if (Math.abs(mat[i][j]) > 1e-10) allZero = false;
+            if (allZero && Math.abs(mat[i][n]) > 1e-10) inconsistent = true;
+        }
+
+        if (inconsistent) {
+            output = "👉 结论：方程组无解（增广矩阵的秩大于系数矩阵的秩）。";
+        } else {
+            let rank = 0;
+            for (let i = 0; i < n; i++) {
+                let hasNonZero = false;
+                for (let j = 0; j < n; j++) if (Math.abs(mat[i][j]) > 1e-10) hasNonZero = true;
+                if (hasNonZero) rank++;
+            }
+            if (rank === n) {
+                let x = new Array(n).fill(0);
+                for (let i = n - 1; i >= 0; i--) {
+                    let s = mat[i][n];
+                    for (let j = i + 1; j < n; j++) s -= mat[i][j] * x[j];
+                    x[i] = s / mat[i][i];
+                }
+                output = "👉 结论：方程组有唯一解。\n解为：x = [" + x.map(v => v.toFixed(6)).join(', ') + "]";
+            } else {
+                output = "👉 结论：方程组有无穷多解（系数矩阵的秩小于未知数个数 " + n + "）。";
+            }
+        }
+        resultDiv.className = 'result success';
+        soundSuccess();
+    } catch (e) {
+        output = "❌ 错误：" + e.message;
+        resultDiv.className = 'result error';
+        soundError();
+    }
+    resultDiv.textContent = output;
+    resultDiv.style.display = 'block';
+}
+
+function calcEig() {
+    const n = parseInt(document.getElementById('eigN').value);
+    const resultDiv = document.getElementById('eigResult');
+    let output = '';
+    try {
+        let matrix = [];
+        for (let i = 0; i < n; i++) {
+            let row = [];
+            for (let j = 0; j < n; j++) {
+                row.push(parseFloat(document.getElementById(`eig_${i}_${j}`).value));
+            }
+            matrix.push(row);
+        }
+        
+        const result = math.eigs(matrix);
+        output = "特征值：\n";
+        result.values.forEach((val, i) => {
+            if (typeof val === 'object' && val.re !== undefined) {
+                output += `λ${i+1} = ${val.re.toFixed(6)} + ${val.im.toFixed(6)}i\n`;
+            } else {
+                output += `λ${i+1} = ${val.toFixed(6)}\n`;
+            }
+        });
+        
+        output += "\n特征向量：\n";
+        result.vectors.forEach((vec, i) => {
+            output += `v${i+1} = [` + vec.map(v => v.toFixed(4)).join(', ') + "]\n";
+        });
+
+        resultDiv.className = 'result success';
+        soundSuccess();
+    } catch (e) {
+        output = "❌ 错误：" + e.message;
+        resultDiv.className = 'result error';
+        soundError();
+    }
+    resultDiv.textContent = output;
+    resultDiv.style.display = 'block';
+}
+
+// 初始化
+generateMatrix('det');
+generateMatrix('mat');
+generateMatrix('vec');
+generateMatrix('eq');
+generateMatrix('eig');
 </script>
 
-<div id="discToast">请先阅读全部内容</div>
+<!-- 底部固定的学校 Logo -->
+<div class="footer-logo">
+    <img src="dgut.png" alt="东莞理工学院">
+</div>
+
+<!-- 彩蛋：右下角小图标，鼠标移上去才显示 -->
+<div onclick="changeWallpaper()" class="easter-egg-btn" title="切换主题">
+    <img src="tu.png" id="eggIcon" alt="彩蛋">
+</div>
+
 </body>
 </html>
-
-<!-- deploy: 20260502-1138-index-fix -->
